@@ -17,8 +17,8 @@ jobs:
       - name: Download library files directly
         run: |
           mkdir -p lib
-          curl -L "https://aframe.io/releases/1.3.0/aframe.min.js" -o lib/aframe.min.js
-          curl -L "https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js" -o lib/aframe-ar-nft.js
+          curl -L "https://aframe.io/releases/1.3.0/aframe.min.js" -o lib/aframe2.min.js
+          curl -L "https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js" -o lib/aframe-ar-nft2.js
           echo "Downloaded files:"
           ls -lh lib/
 
