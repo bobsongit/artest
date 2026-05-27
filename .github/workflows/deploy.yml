@@ -26,7 +26,7 @@ jobs:
 
           # Download AR.js NFT via npm
           npm pack @ar-js-org/ar.js@3.4.5
-          tar -xzf ar.js-3.4.5.tgz
+          tar -xzf ar-js-org-ar.js-3.4.5.tgz
           cp package/aframe/build/aframe-ar-nft.js lib/aframe-ar-nft2.js
           echo "ar.js size: $(wc -c < lib/aframe-ar-nft2.js) bytes"
 
