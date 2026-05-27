@@ -9,13 +9,10 @@
     body { font-family: sans-serif; background: #111; overflow: hidden; touch-action: none; }
 
     #debug-panel {
-      position: fixed; top: 0; left: 0; right: 0;
-      z-index: 9999;
-      background: rgba(0,0,0,0.85);
-      color: #0f0; font-family: monospace; font-size: 11px; line-height: 1.5;
-      padding: 6px 10px 6px 10px;
-      max-height: 40vh; overflow-y: auto;
-      border-bottom: 1px solid #333;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+      background: rgba(0,0,0,0.85); color: #0f0; font-family: monospace;
+      font-size: 11px; line-height: 1.5; padding: 6px 10px;
+      max-height: 40vh; overflow-y: auto; border-bottom: 1px solid #333;
     }
     #debug-panel .d-err  { color: #ff5f5f; }
     #debug-panel .d-warn { color: #ffd166; }
@@ -24,9 +21,8 @@
     #debug-toggle {
       position: fixed; top: 6px; right: 8px; z-index: 10000;
       background: rgba(0,0,0,0.7); border: 1px solid #444; border-radius: 6px;
-      color: #0f0; font-size: 11px; padding: 3px 8px; cursor: pointer; font-family: monospace;
+      color: #0f0; font-size: 11px; padding: 3px 8px; cursor: pointer;
     }
-
     #hud {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 9998;
       padding: 12px 12px 24px;
@@ -35,33 +31,21 @@
     }
     #status { color: rgba(255,255,255,0.7); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
     #buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-
     .layer-btn {
       border: 2px solid rgba(255,255,255,0.25); border-radius: 40px;
       padding: 10px 18px; font-size: 13px; font-weight: 600;
       cursor: pointer; color: white; background: rgba(255,255,255,0.08);
-      transition: all 0.2s ease;
     }
-    .layer-btn.active {
-      border-color: var(--col);
-      background: rgba(255,255,255,0.2);
-      box-shadow: 0 0 14px var(--col);
-    }
+    .layer-btn.active { border-color: var(--col); background: rgba(255,255,255,0.2); box-shadow: 0 0 14px var(--col); }
     #btn-green  { --col: #4ade80; }
     #btn-pink   { --col: #f472b6; }
     #btn-purple { --col: #c084fc; }
-    #btn-camera { --col: #facc15; }
-
-    /* Force A-Frame canvas to fill screen */
     a-scene, canvas {
-      position: fixed !important;
-      top: 0 !important; left: 0 !important;
-      width: 100% !important; height: 100% !important;
-      z-index: 0 !important;
+      position: fixed !important; top: 0 !important; left: 0 !important;
+      width: 100% !important; height: 100% !important; z-index: 0 !important;
     }
-
     #scan-hint {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
       z-index: 9997; text-align: center; pointer-events: none; transition: opacity 0.5s;
     }
     #scan-hint.hidden { opacity: 0; }
@@ -69,9 +53,8 @@
       width: 160px; height: 160px; border: 3px solid rgba(255,255,255,0.3);
       border-radius: 20px; margin: 0 auto 12px; animation: scanPulse 2s ease-in-out infinite;
     }
-    @keyframes scanPulse { 0%,100% { opacity:0.7; transform:scale(1); } 50% { opacity:1; transform:scale(1.04); } }
-    #scan-hint p { color: rgba(255,255,255,0.8); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; }
-
+    @keyframes scanPulse { 0%,100%{opacity:0.7;transform:scale(1);}50%{opacity:1;transform:scale(1.04);} }
+    #scan-hint p { color: rgba(255,255,255,0.8); font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; }
     #info-panel {
       position: fixed; top: 20px; right: 12px; z-index: 9998;
       background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.15);
@@ -83,51 +66,41 @@
       display: inline-block; width: 8px; height: 8px; border-radius: 50%;
       background: #4ade80; margin-right: 5px; animation: pulse 1.4s infinite;
     }
-    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+    @keyframes pulse { 0%,100%{opacity:1;}50%{opacity:0.3;} }
   </style>
 </head>
 <body>
 
-  <!-- Debug panel -->
   <div id="debug-panel"></div>
   <button id="debug-toggle" onclick="toggleDebug()">▲ hide log</button>
 
-  <!-- Scan hint -->
   <div id="scan-hint">
     <div class="scan-ring"></div>
-    <p>Point at the poster</p>
+    <p>Point at the marker</p>
   </div>
 
-  <!-- Tracking badge -->
   <div id="info-panel">
-    <span class="dot"></span> Tracking poster<br>
+    <span class="dot"></span> Marker detected<br>
     <span style="color:rgba(255,255,255,0.5);font-size:11px;">Tap layers to reveal</span>
   </div>
 
-  <!-- HUD buttons -->
   <div id="hud">
     <div id="status">Initialising…</div>
     <div id="buttons">
       <button class="layer-btn" id="btn-green"  onclick="toggleLayer('green')">🟢 Layer 1</button>
       <button class="layer-btn" id="btn-pink"   onclick="toggleLayer('pink')">🩷 Layer 2</button>
       <button class="layer-btn" id="btn-purple" onclick="toggleLayer('purple')">🟣 Layer 3</button>
-      <button class="layer-btn" id="btn-camera" onclick="testCamera()">📷 Test Camera</button>
     </div>
   </div>
 
-  <!-- A-Frame scene -->
+  <!-- A-Frame scene: standard marker mode (not NFT) -->
   <a-scene
     vr-mode-ui="enabled: false"
     renderer="logarithmicDepthBuffer: true; precision: medium; alpha: true;"
     embedded
     arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;">
 
-    <a-marker
-      id="nft-target"
-      preset="hiro"
-      emitevents="true">
-
-      <a-plane id="layer-base"   src="Dia1.PNG" width="3.58" height="2" position="0 0 0.001" rotation="-90 0 0" material="transparent:true;opacity:0;side:double;"></a-plane>
+    <a-marker type="barcode" value="5" id="ar-marker" emitevents="true" smooth="true">
       <a-plane id="layer-green"  src="Dia2.PNG" width="3.58" height="2" position="0 0 0.01"  rotation="-90 0 0" visible="false" material="transparent:true;alphaTest:0.05;side:double;"></a-plane>
       <a-plane id="layer-pink"   src="Dia3.PNG" width="3.58" height="2" position="0 0 0.02"  rotation="-90 0 0" visible="false" material="transparent:true;alphaTest:0.05;side:double;"></a-plane>
       <a-plane id="layer-purple" src="Dia4.PNG" width="3.58" height="2" position="0 0 0.03"  rotation="-90 0 0" visible="false" material="transparent:true;alphaTest:0.05;side:double;"></a-plane>
@@ -136,14 +109,13 @@
     <a-entity camera></a-entity>
   </a-scene>
 
-  <!-- Load A-Frame AFTER the scene markup, then run our code -->
+  <!-- Standard AR.js build (supports barcode + hiro, NOT nft) -->
   <script src="vendor/aframe-160.min.js"></script>
-  <script src="vendor/arjs-nft-345.js"></script>
+  <script src="vendor/arjs-standard.js"></script>
 
   <script>
-    // ── Debug console ──
-    const dbg = document.getElementById('debug-panel');
-    let debugVisible = true;
+    var dbg = document.getElementById('debug-panel');
+    var debugVisible = true;
 
     function toggleDebug() {
       debugVisible = !debugVisible;
@@ -153,16 +125,14 @@
 
     function log(msg, type) {
       type = type || 'log';
-      const line = document.createElement('div');
+      var line = document.createElement('div');
       line.className = 'd-' + type;
       line.textContent = '[' + new Date().toTimeString().slice(0,8) + '] ' + msg;
       dbg.appendChild(line);
       dbg.scrollTop = dbg.scrollHeight;
     }
 
-    window.onerror = function(msg, src, line) {
-      log('ERROR: ' + msg + ' (line ' + line + ')', 'err');
-    };
+    window.onerror = function(msg, src, ln) { log('ERROR: ' + msg + ' (line ' + ln + ')', 'err'); };
 
     log('Page loaded', 'info');
     log('Protocol: ' + location.protocol, location.protocol === 'https:' ? 'info' : 'err');
@@ -173,28 +143,6 @@
       log('getUserMedia: NOT available', 'err');
     }
 
-    if (navigator.permissions) {
-      navigator.permissions.query({ name: 'camera' })
-        .then(function(r) { log('Camera permission: ' + r.state, r.state === 'granted' ? 'info' : 'warn'); })
-        .catch(function(e) { log('Permission query error: ' + e, 'warn'); });
-    }
-
-    // ── Camera test ──
-    function testCamera() {
-      log('Testing camera...', 'info');
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        .then(function(stream) {
-          log('Camera granted! Tracks: ' + stream.getVideoTracks().length, 'info');
-          stream.getTracks().forEach(function(t) { t.stop(); });
-          log('Test stream stopped', 'info');
-          document.getElementById('btn-camera').textContent = '✓ Camera OK';
-        })
-        .catch(function(err) {
-          log('Camera ERROR: ' + err.name + ' – ' + err.message, 'err');
-        });
-    }
-
-    // ── Layer toggles ──
     var layerMap = { green: 'layer-green', pink: 'layer-pink', purple: 'layer-purple' };
     var state = { green: false, pink: false, purple: false };
 
@@ -207,117 +155,41 @@
       log('Layer ' + name + ': ' + (state[name] ? 'ON' : 'OFF'), 'info');
     }
 
-    // ── A-Frame + NFT events ──
-    var scene  = document.querySelector('a-scene');
-    var marker = document.getElementById('nft-target');
-    var statusEl  = document.getElementById('status');
-    var hint      = document.getElementById('scan-hint');
+    var scene    = document.querySelector('a-scene');
+    var marker   = document.getElementById('ar-marker');
+    var statusEl = document.getElementById('status');
+    var hint     = document.getElementById('scan-hint');
     var infoPanel = document.getElementById('info-panel');
 
     scene.addEventListener('loaded', function() {
-      log('A-Frame scene loaded', 'info');
-      statusEl.textContent = 'Searching for poster…';
-
-      // Register white-removal component
-      if (typeof AFRAME !== 'undefined') {
-        log('AFRAME available, registering component', 'info');
-        AFRAME.registerComponent('remove-white', {
-          schema: { threshold: { default: 230 } },
-          init: function() {
-            var self = this;
-            this.el.addEventListener('materialtextureloaded', function() {
-              self.processTexture();
-            });
-          },
-          processTexture: function() {
-            var mesh = this.el.getObject3D('mesh');
-            if (!mesh) return;
-            var mat = mesh.material;
-            var tex = mat && mat.map;
-            if (!tex || !tex.image) return;
-            var img = tex.image;
-            var canvas = document.createElement('canvas');
-            canvas.width  = img.naturalWidth  || img.width;
-            canvas.height = img.naturalHeight || img.height;
-            var ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            var d = imageData.data;
-            var t = this.data.threshold;
-            for (var i = 0; i < d.length; i += 4) {
-              if (d[i] > t && d[i+1] > t && d[i+2] > t) d[i+3] = 0;
-            }
-            ctx.putImageData(imageData, 0, 0);
-            mat.map = new THREE.CanvasTexture(canvas);
-            mat.needsUpdate = true;
-            log('White removal done: ' + this.el.id, 'info');
-          }
-        });
-        ['layer-green','layer-pink','layer-purple'].forEach(function(id) {
-          var el = document.getElementById(id);
-          if (el) el.setAttribute('remove-white', 'threshold: 235');
-        });
-      } else {
-        log('AFRAME still not defined after scene load!', 'err');
-      }
+      log('A-Frame scene loaded ✓', 'info');
+      statusEl.textContent = 'Point at marker 5…';
     });
 
     marker.addEventListener('markerFound', function() {
-      log('Target FOUND', 'info');
-      statusEl.textContent = '✓ Poster detected – tap layers below';
+      log('Marker FOUND ✓', 'info');
+      statusEl.textContent = '✓ Marker detected – tap layers';
       hint.classList.add('hidden');
       infoPanel.classList.add('visible');
     });
 
     marker.addEventListener('markerLost', function() {
-      log('Target lost', 'warn');
-      statusEl.textContent = 'Searching for poster…';
+      log('Marker lost', 'warn');
+      statusEl.textContent = 'Point at marker 5…';
       hint.classList.remove('hidden');
       infoPanel.classList.remove('visible');
     });
 
-    log('Script ready, waiting for A-Frame...', 'info');
-
-    // Check actual file content, not just size
-    fetch('vendor/aframe-160.min.js')
-      .then(function(r) { return r.text(); })
-      .then(function(text) {
-        log('aframe.min.js first 80 chars: ' + text.slice(0, 80), 'info');
-        log('Contains AFRAME string: ' + text.includes('AFRAME'), 'info');
-      });
-
-    // Test if lib files are reachable
-    ['vendor/aframe-160.min.js', 'vendor/arjs-nft-345.js'].forEach(function(path) {
-      fetch(path)
-        .then(function(r) {
-          log(path + ' → HTTP ' + r.status + ' (size: ' + r.headers.get('content-length') + ')', r.ok ? 'info' : 'err');
-        })
-        .catch(function(e) {
-          log(path + ' → FETCH ERROR: ' + e.message, 'err');
-        });
-    });
-
-    // Test if NFT descriptor files are reachable
-    ['assets/poster.fset', 'assets/poster.fset3', 'assets/poster.iset'].forEach(function(path) {
-      fetch(path)
-        .then(function(r) {
-          log(path + ' → HTTP ' + r.status + ' (' + r.headers.get('content-type') + ')', r.ok ? 'info' : 'err');
-        })
-        .catch(function(e) {
-          log(path + ' → FETCH ERROR: ' + e.message, 'err');
-        });
-    });
-
-    // Check if AFRAME loads within 5 seconds
-    var aframeCheckCount = 0;
-    var aframeChecker = setInterval(function() {
-      aframeCheckCount++;
+    // Check AFRAME loaded
+    var n = 0;
+    var t = setInterval(function() {
+      n++;
       if (typeof AFRAME !== 'undefined') {
-        log('AFRAME global found after ' + (aframeCheckCount * 100) + 'ms', 'info');
-        clearInterval(aframeChecker);
-      } else if (aframeCheckCount >= 150) {
-        log('AFRAME never defined after 15s – script failed to load', 'err');
-        clearInterval(aframeChecker);
+        log('AFRAME ready after ' + (n * 100) + 'ms ✓', 'info');
+        clearInterval(t);
+      } else if (n >= 100) {
+        log('AFRAME failed to load after 10s', 'err');
+        clearInterval(t);
       }
     }, 100);
   </script>
