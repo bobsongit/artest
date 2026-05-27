@@ -143,9 +143,47 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
+
+    /* ── Debug console ── */
+    #debug-panel {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      background: rgba(0,0,0,0.82);
+      color: #0f0;
+      font-family: monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      padding: 6px 10px;
+      max-height: 42vh;
+      overflow-y: auto;
+      pointer-events: all;
+      border-bottom: 1px solid #333;
+    }
+    #debug-panel .d-err  { color: #ff5f5f; }
+    #debug-panel .d-warn { color: #ffd166; }
+    #debug-panel .d-info { color: #06d6a0; }
+    #debug-panel .d-log  { color: #aaa; }
+    #debug-toggle {
+      position: fixed;
+      top: 6px; right: 8px;
+      z-index: 1001;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid #444;
+      border-radius: 6px;
+      color: #0f0;
+      font-size: 11px;
+      padding: 3px 8px;
+      cursor: pointer;
+      font-family: monospace;
+    }
   </style>
 </head>
 <body>
+
+  <!-- ── Debug console ── -->
+  <div id="debug-panel"></div>
+  <button id="debug-toggle" onclick="toggleDebug()">▲ hide log</button>
 
   <!-- ── Scanning hint ── -->
   <div id="scan-hint">
@@ -175,14 +213,6 @@
     renderer="logarithmicDepthBuffer: true; precision: medium; alpha: true;"
     embedded
     arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;">
-
-    <!--
-      IMAGE TRACKING via NFT.
-      IMPORTANT: replace `url` with the path to your generated NFT descriptor files
-      (without extension). The three files needed are:  poster.fset  poster.fset3  poster.iset
-      Generate them at: https://carnaux.github.io/NFT-Marker-Creator/
-      For now we use a Hiro fallback marker so you can test layer toggling immediately.
-    -->
 
     <!-- NFT image tracking – targets assets/poster.fset / .fset3 / .iset -->
     <a-nft
@@ -242,6 +272,60 @@
   </a-scene>
 
   <script>
+    // ── On-screen debug console ──
+    const dbg = document.getElementById('debug-panel');
+    let debugVisible = true;
+
+    function toggleDebug() {
+      debugVisible = !debugVisible;
+      dbg.style.display = debugVisible ? 'block' : 'none';
+      document.getElementById('debug-toggle').textContent = debugVisible ? '▲ hide log' : '▼ show log';
+    }
+
+    function log(msg, type = 'log') {
+      const line = document.createElement('div');
+      line.className = 'd-' + type;
+      const time = new Date().toTimeString().slice(0,8);
+      line.textContent = '[' + time + '] ' + msg;
+      dbg.appendChild(line);
+      dbg.scrollTop = dbg.scrollHeight;
+    }
+
+    // Intercept console methods
+    const _log   = console.log.bind(console);
+    const _warn  = console.warn.bind(console);
+    const _error = console.error.bind(console);
+
+    console.log   = (...a) => { _log(...a);   log(a.join(' '), 'log');  };
+    console.warn  = (...a) => { _warn(...a);  log(a.join(' '), 'warn'); };
+    console.error = (...a) => { _error(...a); log(a.join(' '), 'err');  };
+
+    // Catch unhandled errors
+    window.addEventListener('error', e => {
+      log('ERROR: ' + e.message + ' (' + e.filename?.split('/').pop() + ':' + e.lineno + ')', 'err');
+    });
+    window.addEventListener('unhandledrejection', e => {
+      log('PROMISE REJECT: ' + (e.reason?.message || e.reason), 'err');
+    });
+
+    log('Page loaded', 'info');
+    log('Protocol: ' + location.protocol, location.protocol === 'https:' ? 'info' : 'err');
+    log('User agent: ' + navigator.userAgent.slice(0, 80), 'log');
+
+    // Check camera API availability
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      log('getUserMedia: available', 'info');
+    } else {
+      log('getUserMedia: NOT available – camera blocked', 'err');
+    }
+
+    // Probe camera permission state if supported
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'camera' }).then(r => {
+        log('Camera permission state: ' + r.state, r.state === 'granted' ? 'info' : 'warn');
+      }).catch(e => log('Permission query failed: ' + e, 'warn'));
+    }
+
     // ── Layer state ──
     const layerMap = {
       green:  'layer-green',
@@ -254,44 +338,50 @@
       state[name] = !state[name];
       const el = document.getElementById(layerMap[name]);
       if (el) el.setAttribute('visible', state[name]);
-
       const btn = document.getElementById('btn-' + name);
       btn.classList.toggle('active', state[name]);
+      log('Layer ' + name + ': ' + (state[name] ? 'ON' : 'OFF'), 'info');
     }
+
+    // ── A-Frame scene events ──
+    const scene = document.querySelector('a-scene');
+    scene.addEventListener('loaded',      () => log('A-Frame scene loaded', 'info'));
+    scene.addEventListener('camera-set-active', () => log('Camera set active', 'info'));
 
     // ── NFT tracking feedback ──
     const marker    = document.getElementById('nft-target');
-    const status    = document.getElementById('status');
+    const statusEl  = document.getElementById('status');
     const hint      = document.getElementById('scan-hint');
     const infoPanel = document.getElementById('info-panel');
 
     marker.addEventListener('targetFound', () => {
-      status.textContent = '✓ Poster detected – tap layers below';
+      log('Target FOUND', 'info');
+      statusEl.textContent = '✓ Poster detected – tap layers below';
       hint.classList.add('hidden');
       infoPanel.classList.add('visible');
     });
 
     marker.addEventListener('targetLost', () => {
-      status.textContent = 'Searching for poster…';
+      log('Target lost', 'warn');
+      statusEl.textContent = 'Searching for poster…';
       hint.classList.remove('hidden');
       infoPanel.classList.remove('visible');
     });
 
-    // ── White-pixel removal via canvas texture post-processing ──
-    // Because the PNGs have white (not transparent) backgrounds,
-    // we rewrite each texture after load to punch out near-white pixels.
+    // ── White-pixel removal ──
     AFRAME.registerComponent('remove-white', {
       schema: { threshold: { default: 230 } },
       init() {
         this.el.addEventListener('materialtextureloaded', () => {
+          log('Texture loaded for ' + this.el.id + ', removing white', 'info');
           this.processTexture();
         });
       },
       processTexture() {
         const mesh = this.el.getObject3D('mesh');
         if (!mesh) return;
-        const mat  = mesh.material;
-        const tex  = mat && mat.map;
+        const mat = mesh.material;
+        const tex = mat && mat.map;
         if (!tex || !tex.image) return;
 
         const img = tex.image;
@@ -306,20 +396,19 @@
         const t = this.data.threshold;
 
         for (let i = 0; i < d.length; i += 4) {
-          if (d[i] > t && d[i+1] > t && d[i+2] > t) {
-            d[i+3] = 0; // fully transparent
-          }
+          if (d[i] > t && d[i+1] > t && d[i+2] > t) d[i+3] = 0;
         }
         ctx.putImageData(imageData, 0, 0);
 
         const newTex = new THREE.CanvasTexture(canvas);
         mat.map = newTex;
         mat.needsUpdate = true;
+        log('White removal done for ' + this.el.id, 'info');
       }
     });
 
-    // Apply white-removal to all layer planes after scene loads
-    document.querySelector('a-scene').addEventListener('loaded', () => {
+    scene.addEventListener('loaded', () => {
+      log('Applying white-removal to layers', 'info');
       ['layer-green','layer-pink','layer-purple'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.setAttribute('remove-white', 'threshold: 235');
