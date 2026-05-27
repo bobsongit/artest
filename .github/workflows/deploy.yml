@@ -29,7 +29,7 @@ jobs:
           # AR.js NFT latest
           npm pack @ar-js-org/ar.js@3.4.5
           tar -xzf ar-js-org-ar.js-3.4.5.tgz
-          cp package/aframe/build/aframe-ar-nft.js vendor/arjs-nft-345.js
+          cp package/aframe/build/aframe-ar.js vendor/arjs-nft-345.js
           rm -rf package ar-js-org-ar.js-3.4.5.tgz
 
           echo "vendor/ contents:"
