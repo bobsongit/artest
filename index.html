@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WebAR Test</title>
+  <script src="vendor/aframe-160.min.js"></script>
+  <script src="vendor/arjs-standard.js"></script>
   <style>
     body { margin: 0; overflow: hidden; }
     #hud {
@@ -36,8 +38,6 @@
     <button class="btn" onclick="toggle('purple')">🟣 Layer 3</button>
   </div>
 
-  <script src="vendor/aframe-160.min.js"></script>
-  <script src="vendor/arjs-standard.js"></script>
   <script>
     var layers = { green: false, pink: false, purple: false };
 
@@ -46,10 +46,6 @@
       document.getElementById('layer-' + name).setAttribute('visible', layers[name]);
       event.target.classList.toggle('on', layers[name]);
     }
-
-    document.getElementById('marker').addEventListener('markerFound', function() {
-      document.getElementById('hud').style.background = 'none';
-    });
   </script>
 </body>
 </html>
