@@ -14,12 +14,22 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Download library files directly
+      - name: Download and verify library files
         run: |
           mkdir -p lib
-          curl -L "https://aframe.io/releases/1.3.0/aframe.min.js" -o lib/aframe2.min.js
-          curl -L "https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js" -o lib/aframe-ar-nft2.js
-          echo "Downloaded files:"
+
+          # Download aframe via npm (guaranteed correct file)
+          npm pack aframe@1.3.0
+          tar -xzf aframe-1.3.0.tgz
+          cp package/dist/aframe-v1.3.0.min.js lib/aframe2.min.js
+          echo "aframe size: $(wc -c < lib/aframe2.min.js) bytes"
+
+          # Download AR.js NFT via npm
+          npm pack @ar-js-org/ar.js@3.4.5
+          tar -xzf ar.js-3.4.5.tgz
+          cp package/aframe/build/aframe-ar-nft.js lib/aframe-ar-nft2.js
+          echo "ar.js size: $(wc -c < lib/aframe-ar-nft2.js) bytes"
+
           ls -lh lib/
 
       - name: Commit lib/ files
@@ -27,4 +37,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add lib/
-          git diff --staged --quiet && echo "No changes" || (git commit -m "Auto: download correct lib files" && git push)
+          git diff --staged --quiet && echo "No changes" || (git commit -m "Auto: download correct lib files via npm pack" && git push)
