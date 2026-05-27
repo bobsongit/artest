@@ -1,30 +1,38 @@
 name: Install dependencies and deploy
- 
+
 on:
   push:
     branches: [ main ]
- 
+
+permissions:
+  contents: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
- 
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Install npm packages
         run: npm install
- 
+
       - name: Copy library files to lib/
         run: |
           mkdir -p lib
           cp node_modules/aframe/dist/aframe.min.js lib/aframe.min.js
           cp node_modules/@ar-js-org/ar.js/aframe/build/aframe-ar-nft.js lib/aframe-ar-nft.js
- 
+          echo "Files copied:"
+          ls -lh lib/
+
       - name: Commit lib/ files
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add lib/
-          git diff --staged --quiet || git commit -m "Auto: add bundled lib files"
-          git push
- 
+          git diff --staged --quiet && echo "No changes" || (git commit -m "Auto: add bundled lib files" && git push)
