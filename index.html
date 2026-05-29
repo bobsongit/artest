@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>Green Port 2050 – WebAR Layers</title>
   <script src="vendor/aframe-arjs.min.js"></script>
-  <script src="vendor/arjs-nft-official.js"></script>
+  <script src="vendor/mindar-image-aframe.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: sans-serif; background: #111; overflow: hidden; touch-action: none; }
@@ -74,11 +74,11 @@
 
   <div id="scan-hint">
     <div class="scan-ring"></div>
-    <p>Point at the poster</p>
+    <p>Point at the image</p>
   </div>
 
   <div id="info-panel">
-    <span class="dot"></span> Poster detected<br>
+    <span class="dot"></span> Image detected<br>
     <span style="color:rgba(255,255,255,0.5);font-size:11px;">Tap layers to reveal</span>
   </div>
 
@@ -92,27 +92,44 @@
   </div>
 
   <a-scene
+    mindar-image="imageTargetSrc: assets/targets.mind; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;"
+    color-space="sRGB"
+    renderer="colorManagement: true; physicallyCorrectLights: true;"
     vr-mode-ui="enabled: false"
-    renderer="logarithmicDepthBuffer: true; precision: medium; alpha: true;"
-    embedded
-    arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;">
+    device-orientation-permission-ui="enabled: false">
 
-    <a-entity
-      id="ar-target"
-      arjs-anchor="type: nft; descriptorsUrl: assets/oneill; smooth: true; smoothCount: 10; smoothTolerance: 0.01; smoothThreshold: 5;"
-      emitevents="true">
+    <a-assets>
+      <img id="layer-green-img"  src="Dia2.PNG" />
+      <img id="layer-pink-img"   src="Dia3.PNG" />
+      <img id="layer-purple-img" src="Dia4.PNG" />
+    </a-assets>
 
-      <a-plane id="layer-green"  src="Dia2.PNG" width="3.58" height="2" position="0 0 0.01" rotation="-90 0 0" visible="false" material="transparent:true;alphaTest:0.05;side:double;"></a-plane>
-      <a-plane id="layer-pink"   src="Dia3.PNG" width="3.58" height="2" position="0 0 0.02" rotation="-90 0 0" visible="false" material="transparent:true;alphaTest:0.05;side:double;"></a-plane>
-      <a-plane id="layer-purple" src="Dia4.PNG" width="3.58" height="2" position="0 0 0.03" rotation="-90 0 0" visible="false" material="transparent:true;alphaTest:0.05;side:double;"></a-plane>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
+    <a-entity id="ar-target" mindar-image-target="targetIndex: 0">
+      <a-plane src="#layer-green-img"  id="layer-green"
+        position="0 0 0.001" rotation="0 0 0"
+        width="1" height="0.552"
+        visible="false"
+        material="transparent: true; alphaTest: 0.05; side: double;">
+      </a-plane>
+      <a-plane src="#layer-pink-img"   id="layer-pink"
+        position="0 0 0.002" rotation="0 0 0"
+        width="1" height="0.552"
+        visible="false"
+        material="transparent: true; alphaTest: 0.05; side: double;">
+      </a-plane>
+      <a-plane src="#layer-purple-img" id="layer-purple"
+        position="0 0 0.003" rotation="0 0 0"
+        width="1" height="0.552"
+        visible="false"
+        material="transparent: true; alphaTest: 0.05; side: double;">
+      </a-plane>
     </a-entity>
 
-    <a-entity camera></a-entity>
   </a-scene>
 
   <script>
-    // ── Debug console ──
     var dbg = document.getElementById('debug-panel');
     var debugVisible = true;
 
@@ -135,16 +152,7 @@
 
     log('Page loaded', 'info');
     log('Protocol: ' + location.protocol, location.protocol === 'https:' ? 'info' : 'err');
-    log('AFRAME defined: ' + (typeof AFRAME !== 'undefined'), typeof AFRAME !== 'undefined' ? 'info' : 'err');
 
-    // Check NFT files
-    ['assets/oneill.fset', 'assets/oneill.fset3', 'assets/oneill.iset'].forEach(function(path) {
-      fetch(path)
-        .then(function(r) { log(path + ' → ' + r.status, r.ok ? 'info' : 'err'); })
-        .catch(function(e) { log(path + ' → ERROR: ' + e.message, 'err'); });
-    });
-
-    // ── Layer toggles ──
     var layerMap = { green: 'layer-green', pink: 'layer-pink', purple: 'layer-purple' };
     var state = { green: false, pink: false, purple: false };
 
@@ -157,76 +165,27 @@
       log('Layer ' + name + ': ' + (state[name] ? 'ON' : 'OFF'), 'info');
     }
 
-    // ── Scene and tracking events ──
-    var scene     = document.querySelector('a-scene');
-    var target    = document.getElementById('ar-target');
-    var statusEl  = document.getElementById('status');
-    var hint      = document.getElementById('scan-hint');
+    var scene    = document.querySelector('a-scene');
+    var target   = document.getElementById('ar-target');
+    var statusEl = document.getElementById('status');
+    var hint     = document.getElementById('scan-hint');
     var infoPanel = document.getElementById('info-panel');
 
     scene.addEventListener('loaded', function() {
       log('A-Frame scene loaded ✓', 'info');
-      statusEl.textContent = 'Point at the poster…';
-    });
-
-    // Check what's actually in the AR.js file
-        fetch('vendor/arjs-nft-official.js')
-      .then(function(r) { return r.text(); })
-      .then(function(text) {
-        // Find how a-nft primitive is defined
-        var anftIdx = text.indexOf('a-nft');
-        log('a-nft context: ' + text.slice(anftIdx, anftIdx + 200), 'info');
-        // Find nft component definition
-        var nftIdx = text.indexOf('"nft"');
-        log('nft string context: ' + text.slice(nftIdx, nftIdx + 200), 'info');
-      });
-
-    // Listen for arjs-nft-loaded global event
-    window.addEventListener('arjs-nft-loaded', function(ev) { log('arjs-nft-loaded event: ' + JSON.stringify(ev.detail), 'info'); });
-
-    // NFT specific debug events
-    target.addEventListener('markerFound', function() { log('markerFound event fired', 'info'); });
-    target.addEventListener('markerLost', function() { log('markerLost event fired', 'warn'); });
-
-    // Log anchor component state after short delay
-    setTimeout(function() {
-      var anchor = target.components['arjs-anchor'];
-      if (anchor) {
-        log('arjs-anchor type: ' + anchor.data.type, 'info');
-        log('arjs-anchor descriptorsUrl: ' + anchor.data.descriptorsUrl, 'info');
-      }
-    }, 3000);
-
-    // Log all events on the target
-    ['targetFound', 'targetLost', 'nft-video-loaded', 'nft-video-played', 'nft-video-ended'].forEach(function(evt) {
-      target.addEventListener(evt, function() { log('Event: ' + evt, 'info'); });
-    });
-
-    // Check AR.js internals after scene loads
-    scene.addEventListener('loaded', function() {
-      setTimeout(function() {
-        var arSystem = scene.systems && scene.systems['arjs'];
-        log('AR.js system present: ' + !!arSystem, arSystem ? 'info' : 'err');
-        var nftComp = target.components && (target.components['nft'] || target.components['arjs-anchor']);
-        log('NFT/anchor component present: ' + !!nftComp, nftComp ? 'info' : 'err');
-        // Check all registered AR.js components
-        var arComps = Object.keys(AFRAME.components).filter(function(k){ return k.indexOf('ar') > -1 || k.indexOf('nft') > -1; });
-        log('AR components registered: ' + arComps.join(', '), arComps.length ? 'info' : 'err');
-        // Check if a-nft primitive is registered
-        log('a-nft primitive: ' + !!AFRAME.primitives.primitives['a-nft'], !!AFRAME.primitives.primitives['a-nft'] ? 'info' : 'err');
-      }, 2000);
+      statusEl.textContent = 'Point at the image…';
     });
 
     target.addEventListener('targetFound', function() {
-      log('Poster FOUND ✓', 'info');
-      statusEl.textContent = '✓ Poster detected – tap layers';
+      log('Target FOUND ✓', 'info');
+      statusEl.textContent = '✓ Image detected – tap layers';
       hint.classList.add('hidden');
       infoPanel.classList.add('visible');
     });
 
     target.addEventListener('targetLost', function() {
-      log('Poster lost', 'warn');
-      statusEl.textContent = 'Point at the poster…';
+      log('Target lost', 'warn');
+      statusEl.textContent = 'Point at the image…';
       hint.classList.remove('hidden');
       infoPanel.classList.remove('visible');
     });
