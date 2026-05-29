@@ -97,9 +97,10 @@
     embedded
     arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;">
 
-    <a-entity
+    <a-nft
       id="ar-target"
-      arjs-anchor="markerType: nft; markerUrl: assets/oneill;"
+      type="nft"
+      url="assets/oneill"
       smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5"
       emitevents="true">
 
@@ -107,7 +108,7 @@
       <a-plane id="layer-pink"   src="Dia3.PNG" width="3.58" height="2" position="0 0 0.02" rotation="-90 0 0" visible="false" material="transparent:true;alphaTest:0.05;side:double;"></a-plane>
       <a-plane id="layer-purple" src="Dia4.PNG" width="3.58" height="2" position="0 0 0.03" rotation="-90 0 0" visible="false" material="transparent:true;alphaTest:0.05;side:double;"></a-plane>
 
-    </a-entity>
+    </a-nft>
 
     <a-entity camera></a-entity>
   </a-scene>
@@ -169,6 +170,9 @@
       log('A-Frame scene loaded ✓', 'info');
       statusEl.textContent = 'Point at the poster…';
     });
+
+    // Listen for arjs-nft-loaded global event
+    window.addEventListener('arjs-nft-loaded', function(ev) { log('arjs-nft-loaded event: ' + JSON.stringify(ev.detail), 'info'); });
 
     // NFT specific debug events
     target.addEventListener('markerFound', function() { log('markerFound event fired', 'info'); });
