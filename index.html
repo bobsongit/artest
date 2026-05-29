@@ -188,6 +188,15 @@
     target.addEventListener('markerFound', function() { log('markerFound event fired', 'info'); });
     target.addEventListener('markerLost', function() { log('markerLost event fired', 'warn'); });
 
+    // Log anchor component state after short delay
+    setTimeout(function() {
+      var anchor = target.components['arjs-anchor'];
+      if (anchor) {
+        log('arjs-anchor type: ' + anchor.data.type, 'info');
+        log('arjs-anchor descriptorsUrl: ' + anchor.data.descriptorsUrl, 'info');
+      }
+    }, 3000);
+
     // Log all events on the target
     ['targetFound', 'targetLost', 'nft-video-loaded', 'nft-video-played', 'nft-video-ended'].forEach(function(evt) {
       target.addEventListener(evt, function() { log('Event: ' + evt, 'info'); });
