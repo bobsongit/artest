@@ -209,30 +209,41 @@
       return Math.sqrt(dx * dx + dy * dy);
     }
 
-    document.addEventListener('touchstart', function(e) {
-      if (e.touches.length === 2) {
-        lastDistance = getPinchDistance(e);
-      }
-    });
-
-    document.addEventListener('touchmove', function(e) {
-      if (e.touches.length === 2) {
-        e.preventDefault();
-        var dist = getPinchDistance(e);
-        if (lastDistance) {
-          var delta = dist / lastDistance;
-          currentScale = Math.min(Math.max(currentScale * delta, 0.5), 4);
-          var target = document.getElementById('ar-target');
-          if (target) {
-            target.setAttribute('scale', currentScale + ' ' + currentScale + ' ' + currentScale);
-          }
+    function setupPinchZoom(el) {
+      el.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 2) {
+          lastDistance = getPinchDistance(e);
         }
-        lastDistance = dist;
-      }
-    }, { passive: false });
+      }, { passive: true });
 
-    document.addEventListener('touchend', function(e) {
-      if (e.touches.length < 2) lastDistance = null;
+      el.addEventListener('touchmove', function(e) {
+        if (e.touches.length === 2) {
+          var dist = getPinchDistance(e);
+          if (lastDistance) {
+            var delta = dist / lastDistance;
+            currentScale = Math.min(Math.max(currentScale * delta, 0.5), 4);
+            var target = document.getElementById('ar-target');
+            if (target) {
+              target.setAttribute('scale', currentScale + ' ' + currentScale + ' ' + currentScale);
+            }
+          }
+          lastDistance = dist;
+        }
+      }, { passive: true });
+
+      el.addEventListener('touchend', function(e) {
+        if (e.touches.length < 2) lastDistance = null;
+      }, { passive: true });
+    }
+
+    // Attach to document and also to canvas once scene loads
+    setupPinchZoom(document);
+    document.querySelector('a-scene').addEventListener('loaded', function() {
+      var canvas = document.querySelector('canvas');
+      if (canvas) {
+        setupPinchZoom(canvas);
+        log('Pinch zoom attached to canvas ✓', 'info');
+      }
     });
   </script>
 </body>
