@@ -97,10 +97,9 @@
     embedded
     arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;">
 
-    <a-nft
+    <a-entity
       id="ar-target"
-      type="nft"
-      url="assets/oneill"
+      arjs-anchor="markerType: nft; markerUrl: assets/oneill;"
       smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5"
       emitevents="true">
 
@@ -108,7 +107,7 @@
       <a-plane id="layer-pink"   src="Dia3.PNG" width="3.58" height="2" position="0 0 0.02" rotation="-90 0 0" visible="false" material="transparent:true;alphaTest:0.05;side:double;"></a-plane>
       <a-plane id="layer-purple" src="Dia4.PNG" width="3.58" height="2" position="0 0 0.03" rotation="-90 0 0" visible="false" material="transparent:true;alphaTest:0.05;side:double;"></a-plane>
 
-    </a-nft>
+    </a-entity>
 
     <a-entity camera></a-entity>
   </a-scene>
