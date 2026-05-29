@@ -171,6 +171,25 @@
       statusEl.textContent = 'Point at the poster…';
     });
 
+    // NFT specific debug events
+    target.addEventListener('markerFound', function() { log('markerFound event fired', 'info'); });
+    target.addEventListener('markerLost', function() { log('markerLost event fired', 'warn'); });
+
+    // Log all events on the target
+    ['targetFound', 'targetLost', 'nft-video-loaded', 'nft-video-played', 'nft-video-ended'].forEach(function(evt) {
+      target.addEventListener(evt, function() { log('Event: ' + evt, 'info'); });
+    });
+
+    // Check AR.js internals after scene loads
+    scene.addEventListener('loaded', function() {
+      setTimeout(function() {
+        var arSystem = scene.systems && scene.systems['arjs'];
+        log('AR.js system present: ' + !!arSystem, arSystem ? 'info' : 'err');
+        var nftComp = target.components && target.components['nft'];
+        log('NFT component present: ' + !!nftComp, nftComp ? 'info' : 'err');
+      }, 2000);
+    });
+
     target.addEventListener('targetFound', function() {
       log('Poster FOUND ✓', 'info');
       statusEl.textContent = '✓ Poster detected – tap layers';
