@@ -97,18 +97,16 @@
     embedded
     arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;">
 
-    <a-nft
+    <a-entity
       id="ar-target"
-      type="nft"
-      url="assets/oneill"
-      smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5"
+      arjs-anchor="markerType: nft; markerUrl: assets/oneill; smooth: true; smoothCount: 10; smoothTolerance: 0.01; smoothThreshold: 5;"
       emitevents="true">
 
       <a-plane id="layer-green"  src="Dia2.PNG" width="3.58" height="2" position="0 0 0.01" rotation="-90 0 0" visible="false" material="transparent:true;alphaTest:0.05;side:double;"></a-plane>
       <a-plane id="layer-pink"   src="Dia3.PNG" width="3.58" height="2" position="0 0 0.02" rotation="-90 0 0" visible="false" material="transparent:true;alphaTest:0.05;side:double;"></a-plane>
       <a-plane id="layer-purple" src="Dia4.PNG" width="3.58" height="2" position="0 0 0.03" rotation="-90 0 0" visible="false" material="transparent:true;alphaTest:0.05;side:double;"></a-plane>
 
-    </a-nft>
+    </a-entity>
 
     <a-entity camera></a-entity>
   </a-scene>
@@ -200,8 +198,8 @@
       setTimeout(function() {
         var arSystem = scene.systems && scene.systems['arjs'];
         log('AR.js system present: ' + !!arSystem, arSystem ? 'info' : 'err');
-        var nftComp = target.components && target.components['nft'];
-        log('NFT component present: ' + !!nftComp, nftComp ? 'info' : 'err');
+        var nftComp = target.components && (target.components['nft'] || target.components['arjs-anchor']);
+        log('NFT/anchor component present: ' + !!nftComp, nftComp ? 'info' : 'err');
         // Check all registered AR.js components
         var arComps = Object.keys(AFRAME.components).filter(function(k){ return k.indexOf('ar') > -1 || k.indexOf('nft') > -1; });
         log('AR components registered: ' + arComps.join(', '), arComps.length ? 'info' : 'err');
