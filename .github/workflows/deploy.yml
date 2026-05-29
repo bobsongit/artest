@@ -16,23 +16,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download library files
+      - name: Download exact library versions used in official AR.js examples
         run: |
           mkdir -p vendor
 
-          # A-Frame 1.6.0
-          npm pack aframe@1.6.0
-          tar -xzf aframe-1.6.0.tgz
-          cp package/dist/aframe-v1.6.0.min.js vendor/aframe-160.min.js
-          rm -rf package aframe-1.6.0.tgz
+          # Exact A-Frame commit used in all official AR.js NFT examples
+          curl -L "https://cdn.jsdelivr.net/gh/aframevr/aframe@1c2407b26c61958baa93967b5412487cd94b290b/dist/aframe-master.min.js" -o vendor/aframe-arjs.min.js
+          echo "aframe size: $(wc -c < vendor/aframe-arjs.min.js)"
 
-          # AR.js 3.4.5 - NFT build
-          npm pack @ar-js-org/ar.js@3.4.5
-          tar -xzf ar-js-org-ar.js-3.4.5.tgz
-          cp package/aframe/build/aframe-ar-nft.js vendor/arjs-nft.min.js
-          rm -rf package ar-js-org-ar.js-3.4.5.tgz
+          # AR.js NFT build from master
+          curl -L "https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js" -o vendor/arjs-nft-official.js
+          echo "arjs size: $(wc -c < vendor/arjs-nft-official.js)"
 
-          echo "vendor/ contents:"
           ls -lh vendor/
 
       - name: Commit and push vendor/ files
@@ -43,6 +38,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Auto: update vendor files"
+            git commit -m "Auto: add official AR.js example scripts"
             git push origin main
           fi
