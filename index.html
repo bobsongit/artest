@@ -103,15 +103,15 @@
   <a-scene
     mindar-image="imageTargetSrc: assets/targets.mind; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;"
     color-space="sRGB"
-    renderer="colorManagement: true; physicallyCorrectLights: true;"
+    renderer="colorManagement: false; physicallyCorrectLights: false;"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false">
 
     <a-assets>
-      <img id="layer1-img" src="layer1.webp" />
-      <img id="layer2-img" src="layer2.webp" />
-      <img id="layer3-img" src="layer3.webp" />
-      <img id="layer4-img" src="layer4.webp" />
+      <img id="layer1-img" src="1.png" />
+      <img id="layer2-img" src="2.png" />
+      <img id="layer3-img" src="3.png" />
+      <img id="layer4-img" src="4.png" />
     </a-assets>
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -189,6 +189,23 @@
 
     scene.addEventListener('loaded', function() {
       statusEl.textContent = 'Point at the image…';
+
+      // Boost color saturation and contrast on layer textures
+      setTimeout(function() {
+        ['layer1','layer2','layer3','layer4'].forEach(function(id) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          el.addEventListener('materialtextureloaded', function() {
+            var mesh = el.getObject3D('mesh');
+            if (!mesh) return;
+            var mat = mesh.material;
+            if (mat && mat.map) {
+              mat.map.encoding = THREE.LinearEncoding;
+              mat.needsUpdate = true;
+            }
+          });
+        });
+      }, 500);
     });
 
     target.addEventListener('targetFound', function() {
