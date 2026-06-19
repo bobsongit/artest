@@ -181,12 +181,28 @@
     var state = { layer1: false, layer2: false, layer3: false, layer4: false };
 
     function toggleLayer(name) {
-      state[name] = !state[name];
-      var el = document.getElementById(layerMap[name]);
-      if (el) el.setAttribute('visible', state[name]);
-      var btn = document.getElementById('btn-' + name);
-      if (btn) btn.classList.toggle('active', state[name]);
-      log('Layer ' + name + ': ' + (state[name] ? 'ON' : 'OFF'), 'info');
+      var wasActive = state[name];
+
+      // Turn all layers off
+      Object.keys(state).forEach(function(key) {
+        state[key] = false;
+        var el = document.getElementById(layerMap[key]);
+        if (el) el.setAttribute('visible', false);
+        var btn = document.getElementById('btn-' + key);
+        if (btn) btn.classList.remove('active');
+      });
+
+      // If it wasn't active, turn it on
+      if (!wasActive) {
+        state[name] = true;
+        var el = document.getElementById(layerMap[name]);
+        if (el) el.setAttribute('visible', true);
+        var btn = document.getElementById('btn-' + name);
+        if (btn) btn.classList.add('active');
+        log('Layer ' + name + ': ON', 'info');
+      } else {
+        log('Layer ' + name + ': OFF', 'info');
+      }
     }
 
     var scene    = document.querySelector('a-scene');
